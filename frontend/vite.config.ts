@@ -18,7 +18,7 @@ export default defineConfig({
     host: '0.0.0.0', // binds to all network interfaces
     port: 5173,
     allowedHosts: true, // prevents Vite 6 from dropping foreign incoming requests / LAN devices
-    https: true, // Guarantees window.isSecureContext and navigator.mediaDevices camera access across LAN IPs
+    https: {}, // Guarantees window.isSecureContext and navigator.mediaDevices camera access across LAN IPs
     proxy: {
       '/api': {
         target: process.env.VITE_BACKEND_URL || 'http://localhost:3000',
