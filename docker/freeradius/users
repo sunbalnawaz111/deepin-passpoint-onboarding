@@ -1,0 +1,10 @@
+# FreeRADIUS users file for Wi-Fi Passpoint (EAP-TTLS/MSCHAPv2)
+# The backend syncs dynamic subscribers here or to a shared SQLite/PostgreSQL database
+
+# Default test subscriber
+"sub_test" Cleartext-Password := "PasspointSecret2026!"
+    Reply-Message = "Welcome to Passpoint Hotspot 2.0"
+
+# Fallback test user matching default seed
+"anonymous@wifi.example.com" Cleartext-Password := "anonymous"
+

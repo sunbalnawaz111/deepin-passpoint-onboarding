@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Passpoint Wi-Fi</string>
+    <string name="title_activity_main">Passpoint Wi-Fi</string>
+    <string name="package_name">com.passpoint.onboarding</string>
+    <string name="custom_url_scheme">com.passpoint.onboarding</string>
+</resources>

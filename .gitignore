@@ -1,0 +1,27 @@
+﻿# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+frontend/android/app/build/
+frontend/android/.gradle/
+
+# Local SQLite database & logs (keeps test phone numbers & credentials private)
+*.db
+*.db-shm
+*.db-wal
+*.log
+
+# Environment secrets & certificates
+.env
+.env.*
+*.pem
+*.key
+*.mobileconfig
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

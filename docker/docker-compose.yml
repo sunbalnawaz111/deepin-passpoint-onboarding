@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # FreeRADIUS AAA Server for Wi-Fi 802.1X / EAP-TTLS Authentication
+  freeradius:
+    build:
+      context: ./freeradius
+      dockerfile: Dockerfile
+    container_name: passpoint_freeradius
+    ports:
+      - "1812:1812/udp" # RADIUS Authentication
+      - "1813:1813/udp" # RADIUS Accounting
+    volumes:
+      - ./freeradius/users:/etc/raddb/users:ro
+      - ./freeradius/clients.conf:/etc/raddb/clients.conf:ro
+    restart: unless-stopped
+    networks:
+      - passpoint-net
+
+  # Provisioning Backend (Hono + TypeScript + Drizzle)
+  backend:
+    build:
+      context: ../backend
+      dockerfile_inline: |
+        FROM node:22-alpine
+        WORKDIR /app
+        COPY package*.json ./
+        RUN npm ci
+        COPY . .
+        RUN npm run build
+        EXPOSE 3000
+        CMD ["node", "dist/index.js"]
+    container_name: passpoint_backend
+    environment:
+      - PORT=3000
+      - HOST=0.0.0.0
+      - NODE_ENV=development
+      - PASSPOINT_REALM=wifi.example.com
+      - PASSPOINT_DOMAIN=wifi.example.com
+      - PASSPOINT_OPERATOR_NAME=FastPass Free Wi-Fi
+      - PASSPOINT_ROAMING_OIS=5A03BA0000,004096
+      - RADIUS_SERVER_NAME=radius.wifi.example.com
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../backend/passpoint.db:/app/passpoint.db
+    depends_on:
+      - freeradius
+    networks:
+      - passpoint-net
+
+  # Hybrid Frontend (Vue 3 + Tailwind + Capacitor Web)
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile_inline: |
+        FROM node:22-alpine
+        WORKDIR /app
+        COPY package*.json ./
+        RUN npm ci
+        COPY . .
+        EXPOSE 5173
+        CMD ["npm", "run", "dev", "--", "--host"]
+    container_name: passpoint_frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://backend:3000
+    depends_on:
+      - backend
+    networks:
+      - passpoint-net
+
+networks:
+  passpoint-net:
+    driver: bridge
+

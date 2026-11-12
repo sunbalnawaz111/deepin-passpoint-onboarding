@@ -1,0 +1,32 @@
+{
+  "name": "passpoint-onboarding-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-grade Wi-Fi Passpoint (Hotspot 2.0) onboarding prototype for Web, iOS, and Android",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "node -e \"console.log('Run backend and frontend simultaneously with: npm --prefix backend run dev & npm --prefix frontend run dev')\"",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build": "npm run build:backend && npm run build:frontend",
+    "test:experiments": "cd backend && npm run test:experiments"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "keywords": [
+    "passpoint",
+    "hotspot2.0",
+    "wifi",
+    "hono",
+    "vue3",
+    "capacitor",
+    "radius",
+    "mobileconfig"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+
