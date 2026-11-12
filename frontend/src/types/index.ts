@@ -81,3 +81,41 @@ export interface CountryCode {
   flag: string;
 }
 
+export interface ConnectionStatusResponse {
+  state: 'CONNECTED' | 'CONFIGURED_NOT_CONNECTED' | 'NOT_CONFIGURED';
+  message: string;
+  subscriber?: {
+    id: string;
+    username: string;
+    realm: string;
+    expirationTime: string;
+    customerPhone?: string;
+  };
+  session?: {
+    acctsessionid: string;
+    framedipaddress?: string | null;
+    callingstationid?: string | null;
+    acctstarttime?: string | null;
+    connectedSinceFormatted?: string;
+    sessionDuration?: string;
+    subscriberUsername?: string;
+    assignedIp?: string;
+    dataUsedFormatted?: string;
+    activeSessionsCount?: number;
+  };
+  lastSession?: {
+    acctsessionid: string;
+    framedipaddress?: string | null;
+    callingstationid?: string | null;
+    acctstoptime?: string | null;
+    lastDisconnectedFormatted?: string;
+  };
+  connectedSinceFormatted?: string;
+  sessionDuration?: string;
+  subscriberUsername?: string;
+  assignedIp?: string;
+  dataUsedFormatted?: string;
+  activeSessionsCount?: number;
+  lastDisconnectedFormatted?: string;
+}
+

@@ -228,7 +228,10 @@ async function runValidationExperiments() {
   if (statusConnected.state !== 'CONNECTED') {
     throw new Error(`Exp 3: Expected CONNECTED during active session, got ${statusConnected.state}`);
   }
-  console.log(`✓ Live connection state verified: ${statusConnected.state} (IP: ${statusConnected.session.framedipaddress})`);
+  if (!statusConnected.connectedSinceFormatted || !statusConnected.sessionDuration || !statusConnected.dataUsedFormatted || !statusConnected.assignedIp) {
+    throw new Error(`Exp 3: Missing formatted session metrics in response! Got: ${JSON.stringify(statusConnected)}`);
+  }
+  console.log(`✓ Live connection state verified: ${statusConnected.state} (IP: ${statusConnected.assignedIp}, Data: ${statusConnected.dataUsedFormatted}, Duration: ${statusConnected.sessionDuration}, Since: ${statusConnected.connectedSinceFormatted})`);
 
   // State 3c: Session stops (device leaves venue)
   await (await fetch(`${baseUrl}/api/profile/simulate-session`, {
@@ -244,7 +247,11 @@ async function runValidationExperiments() {
   if (statusPost.state !== 'CONFIGURED_NOT_CONNECTED') {
     throw new Error(`Exp 3: Expected return to CONFIGURED_NOT_CONNECTED, got ${statusPost.state}`);
   }
-  console.log('✓ PASS EXPERIMENT 3: Accurately differentiated between CONFIGURED_NOT_CONNECTED and CONNECTED via FreeRADIUS radacct.');
+  if (!statusPost.lastDisconnectedFormatted) {
+    throw new Error(`Exp 3: Missing lastDisconnectedFormatted when in CONFIGURED_NOT_CONNECTED state!`);
+  }
+  console.log(`✓ Disconnected standby state verified: last session ended at ${statusPost.lastDisconnectedFormatted}`);
+  console.log('✓ PASS EXPERIMENT 3: Accurately differentiated between CONFIGURED_NOT_CONNECTED and CONNECTED with human-readable session metrics.');
 
   // --------------------------------------------------------------------------
   // EXPERIMENT 4: Multi-Device Registration (One-to-Many)

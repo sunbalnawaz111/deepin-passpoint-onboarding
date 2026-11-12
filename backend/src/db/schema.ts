@@ -96,6 +96,8 @@ export const radacct = sqliteTable('radacct', {
   acctsessiontime: integer('acctsessiontime').default(0),
   callingstationid: text('callingstationid'), // Client Wi-Fi MAC
   framedipaddress: text('framedipaddress'), // Assigned IP lease
+  acctinputoctets: integer('acctinputoctets').default(0),
+  acctoutputoctets: integer('acctoutputoctets').default(0),
 });
 
 /**

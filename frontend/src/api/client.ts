@@ -6,6 +6,7 @@ import {
   VerifyOtpResponse,
   PlatformType,
   AndroidPasspointConfig,
+  ConnectionStatusResponse,
 } from '../types';
 
 export function getOrCreateDeviceId(): string {
@@ -139,12 +140,7 @@ export const apiClient = {
   /**
    * Check Live Wi-Fi Connection vs Profile Saved status (Experiment 3)
    */
-  async getConnectionStatus(token?: string, deviceId?: string): Promise<{
-    state: 'CONNECTED' | 'CONFIGURED_NOT_CONNECTED' | 'NOT_CONFIGURED';
-    message: string;
-    subscriber?: { username: string; realm: string; expirationTime: string };
-    session?: { acctsessionid: string; framedipaddress?: string; callingstationid?: string };
-  }> {
+  async getConnectionStatus(token?: string, deviceId?: string): Promise<ConnectionStatusResponse> {
     const targetDevId = deviceId || getOrCreateDeviceId();
     const tokenParam = token ? `token=${encodeURIComponent(token)}&` : '';
     const res = await fetch(`${API_BASE}/profile/connection-status?${tokenParam}deviceId=${encodeURIComponent(targetDevId)}`, {
@@ -154,7 +150,7 @@ export const apiClient = {
       },
     });
 
-    return parseJsonResponse(res);
+    return parseJsonResponse<ConnectionStatusResponse>(res);
   },
 
   /**

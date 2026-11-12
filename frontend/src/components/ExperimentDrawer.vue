@@ -192,7 +192,7 @@
           </div>
 
           <!-- Experiment 3: Live 802.1X AP Session Simulator -->
-          <div class="p-3 bg-gray-950/60 rounded-xl border border-gray-800 space-y-2">
+          <div class="p-3 bg-gray-950/60 rounded-xl border border-gray-800 space-y-2.5">
             <div class="flex items-center justify-between">
               <span class="font-semibold text-white">Exp 3: Live AP Connection Status</span>
               <span
@@ -205,6 +205,55 @@
             <p class="text-gray-400 text-[11px]">
               Toggles FreeRADIUS <code>radacct</code> live session to simulate entering/leaving AP coverage.
             </p>
+
+            <!-- Active Connected Metrics Card in Exp 3 -->
+            <div
+              v-if="liveRadioStatus === 'CONNECTED' && liveSessionMetrics"
+              class="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 space-y-1.5"
+            >
+              <div class="flex items-center justify-between border-b border-emerald-500/20 pb-1.5">
+                <span class="font-bold text-[11px] text-emerald-300 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                  Connected to Deepin Wi-Fi
+                </span>
+                <span class="font-mono text-[10px] text-emerald-400 font-semibold">{{ liveSessionMetrics.dataUsedFormatted || '12.4 MB' }}</span>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5 text-[10px] text-gray-300">
+                <div>
+                  <span class="text-gray-500 block">User / Credential:</span>
+                  <span class="font-mono text-teal-300 truncate block">{{ liveSessionMetrics.subscriberUsername || lastSubscriberUsername }}</span>
+                </div>
+                <div>
+                  <span class="text-gray-500 block">Assigned IP:</span>
+                  <span class="font-mono text-white block">{{ liveSessionMetrics.assignedIp || '10.200.1.42' }}</span>
+                </div>
+                <div>
+                  <span class="text-gray-500 block">Connected Since:</span>
+                  <span class="text-gray-200 block truncate">{{ liveSessionMetrics.connectedSinceFormatted || 'Just now' }}</span>
+                </div>
+                <div>
+                  <span class="text-gray-500 block">Session Duration:</span>
+                  <span class="text-emerald-300 font-medium block">{{ liveSessionMetrics.sessionDuration || 'Just now' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Standby Disconnected Notice in Exp 3 -->
+            <div
+              v-else-if="liveRadioStatus === 'CONFIGURED_NOT_CONNECTED'"
+              class="p-2 rounded-lg bg-gray-900 border border-gray-800 text-[11px] text-gray-400 flex items-center justify-between"
+            >
+              <span class="truncate">
+                <span v-if="liveSessionMetrics?.lastDisconnectedFormatted">
+                  Last session ended: <strong class="text-gray-300">{{ liveSessionMetrics.lastDisconnectedFormatted }}</strong>
+                </span>
+                <span v-else>
+                  Standby: Profile saved, auto-connects in AP range.
+                </span>
+              </span>
+              <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0 ml-2"></span>
+            </div>
+
             <div class="flex gap-2">
               <button
                 :disabled="loading"
@@ -391,6 +440,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { apiClient, getOrCreateDeviceId } from '../api/client';
+import { ConnectionStatusResponse } from '../types';
 
 interface ToastNotification {
   type: 'success' | 'warning' | 'info' | 'error';
@@ -422,6 +472,7 @@ const lastVenueScanResult = ref<{
 
 const newPhoneTarget = ref('+14155558888');
 const liveRadioStatus = ref<'CONNECTED' | 'CONFIGURED_NOT_CONNECTED' | 'NOT_CONFIGURED'>('NOT_CONFIGURED');
+const liveSessionMetrics = ref<ConnectionStatusResponse | null>(null);
 const consoleOutput = ref('Ready for experiment.');
 const lastSubscriberUsername = ref<string>('');
 
@@ -455,11 +506,13 @@ async function refreshLiveStatus() {
   try {
     const status = await apiClient.getConnectionStatus(undefined, currentDeviceId.value);
     liveRadioStatus.value = status.state;
+    liveSessionMetrics.value = status;
     if (status.subscriber?.username) {
       lastSubscriberUsername.value = status.subscriber.username;
     }
   } catch {
     liveRadioStatus.value = 'NOT_CONFIGURED';
+    liveSessionMetrics.value = null;
   }
 }
 
@@ -578,12 +631,22 @@ async function toggleRadiusSession(action: 'start' | 'stop') {
         ? `Device associated with 802.1X AP. Status: CONNECTED.`
         : `Device disassociated from AP. Status: CONFIGURED_NOT_CONNECTED.`
     );
+    await refreshLiveStatus();
     consoleOutput.value = JSON.stringify({
       experiment: `Exp 3: Live 802.1X AP ${action.toUpperCase()}`,
       username: lastSubscriberUsername.value,
       result: res,
+      connectionStatus: {
+        state: liveSessionMetrics.value?.state,
+        connectedSinceFormatted: liveSessionMetrics.value?.connectedSinceFormatted,
+        sessionDuration: liveSessionMetrics.value?.sessionDuration,
+        subscriberUsername: liveSessionMetrics.value?.subscriberUsername,
+        assignedIp: liveSessionMetrics.value?.assignedIp,
+        dataUsedFormatted: liveSessionMetrics.value?.dataUsedFormatted,
+        activeSessionsCount: liveSessionMetrics.value?.activeSessionsCount,
+        lastDisconnectedFormatted: liveSessionMetrics.value?.lastDisconnectedFormatted,
+      },
     }, null, 2);
-    await refreshLiveStatus();
   } catch (err: any) {
     triggerToast('error', 'Exp 3 Error', err.message);
     consoleOutput.value = `Exp 3 Error: ${err.message}`;

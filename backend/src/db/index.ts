@@ -112,9 +112,14 @@ export async function initDatabase() {
       acctstoptime INTEGER,
       acctsessiontime INTEGER DEFAULT 0,
       callingstationid TEXT,
-      framedipaddress TEXT
+      framedipaddress TEXT,
+      acctinputoctets INTEGER DEFAULT 0,
+      acctoutputoctets INTEGER DEFAULT 0
     );
   `);
+
+  await safeExecute('ALTER TABLE radacct ADD COLUMN acctinputoctets INTEGER DEFAULT 0;');
+  await safeExecute('ALTER TABLE radacct ADD COLUMN acctoutputoctets INTEGER DEFAULT 0;');
 
   // 7. Venue Visits Table
   await client.execute(`
